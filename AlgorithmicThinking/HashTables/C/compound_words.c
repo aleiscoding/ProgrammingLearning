@@ -14,9 +14,9 @@ unsigned long oaat(char *key, unsigned long len, unsigned long bits) {
         hash += (hash << 10);
         hash ^= (hash >> 6);
     }
-    hash =+ (hash << 3);
+    hash += (hash << 3);
     hash ^= (hash >> 11);
-    hash =+ (hash << 15);
+    hash += (hash << 15);
     return hash & hashmask(bits);
 }
 
@@ -24,7 +24,7 @@ char *read_line(int size) {
     char *str;
     int ch;
     int len = 0;
-    str = malloc(size);
+    str = (char*) malloc(size);
 
     if (str == NULL) {
         fprintf(stderr, "malloc error\n");
@@ -34,14 +34,14 @@ char *read_line(int size) {
         str[len++] = ch;
         if (len == size) {
             size = size * 2;
-            str = realloc(str, size);
+            str = (char*) realloc(str, size);
             if (str == NULL) {
                 fprintf(stderr, "realloc error\n");
                 exit(1);
             }
         }
     }
-    str[len] = '\n';
+    str[len] = '\0';
     return str;
 }
 
@@ -56,20 +56,24 @@ int in_hash_table(word_node *hash_table[], char *find, unsigned find_len) {
     word_code = oaat(find, find_len, NUM_BITS);
     wordptr = hash_table[word_code];
     while (wordptr) {
-        if ((strlen(*(wordptr -> word)) == find_len) && (strncmp(*(wordptr -> word), find, find_len) == 0))
+        if ((strlen(*(wordptr -> word)) == find_len) && 
+            (strncmp(*(wordptr -> word), find, find_len) == 0))
             return 1;
         wordptr = wordptr -> next;
     }
     return 0;
 }
 
-void identify_compound_words(char *words[], word_node *hash_table[], int total_words) {
+void identify_compound_words(char *words[], 
+                            word_node *hash_table[], 
+                            int total_words) {
     int i, j;
     unsigned len;
     for (i = 0; i < total_words; i++) {
         len = strlen(words[i]);
         for (j = 1; j < len; j++) {
-            if (in_hash_table(hash_table, words[i], j) && in_hash_table(hash_table, &words[i][j], len - j)) {
+            if (in_hash_table(hash_table, words[i], j) && 
+                in_hash_table(hash_table, &words[i][j], len - j)) {
                 printf("%s\n", words[i]);
                 break;
             }
@@ -85,17 +89,17 @@ int main(void) {
     word_node *wordptr;
     unsigned length, word_code;
     word = read_line(WORD_LENGTH);
-    while(*word) {
+    while (*word) {
         words[total] = word;
-        wordptr = malloc(sizeof(word_node));
-        if (wordptr == NULL) {
+        wordptr = (word_node*) malloc(sizeof(word_node));
+        if (wordptr == NULL) { 
             fprintf(stderr, "malloc error\n");
             exit(1);
         }
         length = strlen(word);
         word_code = oaat(word, length, NUM_BITS);
-        wordptr -> word = &words[total];
-        wordptr -> next = hash_table[word_code];
+        wordptr->word = &words[total];
+        wordptr->next = hash_table[word_code];
         hash_table[word_code] = wordptr;
         word = read_line(WORD_LENGTH);
         total++;
